@@ -19,32 +19,19 @@ contract NotRareToken is ERC721 {
 }
 
 contract OptimizedAttacker {
-    NotRareToken private immutable minter;
-    uint8 private immutable offset;
-     constructor(address victim) {
-        
-        minter = NotRareToken(victim);
+    NotRareToken private constant minter = NotRareToken(0x5FbDB2315678afecb367f032d93F642f64180aa3);
 
-        for (uint8 i = 1; i < 6;) {
-            try minter.ownerOf(i) {} catch {
-                
-                offset = i;
-                break;
-            }
-            unchecked {
-                i++;
+    constructor(address) {
+        unchecked {
+            uint256 i = minter.balanceOf(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266) + 1;
+            uint256 offset = 150 + i;
+            while (i != offset) {
+                minter.mint();
+                minter.transferFrom(address(this), msg.sender, i);
+
+                ++i;
             }
         }
-      
-        for (uint8 i = offset; i < 150 + offset;) {
-            minter.mint();
-            minter.transferFrom(address(this), msg.sender, i);
-            unchecked {
-                i++;
-            }
-        }
-
-
-        
+        selfdestruct(payable(address(this)));
     }
 }
